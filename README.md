@@ -26,7 +26,7 @@ To solve the puzzle one can use the following conditions:
    Example: `puzzle.AddCondition_LeftOf(["A"], ["B"], exclude=True)`
    
 ### Somewhere conditions
-   For `AddCondition_RightOf`and `AddCondition_LeftOf` you can pass the additional parameter `somewhere` which - if set to `True` - means that the condition will be met if A can be anywhere left of/right of B, not just next to.
+   For `AddCondition_RightOf`and `AddCondition_LeftOf` you can pass the additional parameter `somewhere` which - if set to `True` - means that the condition will be met if A is anywhere left of/right of B, not just next to it.
    
    Example: `puzzle.AddCondition_LeftOf(["A"], ["B"], somewhere=True)`
 
