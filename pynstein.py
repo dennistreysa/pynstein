@@ -6,14 +6,22 @@ class Pynstein(object):
 		self._init()
 
 	def _init(self):
+		self.Set_Wrap(False)
 		self._rows = None
 		self._cols = None
+		self._isPrepared = False
+		self._items = []
 		self._conditions = {
 			"info" : [],
 			"position": {},
 			"next_to": [],
 			"left_of": []
 		}
+
+	def _unprepare(self):
+		""" Reset the 'prepared'-status
+		"""
+		self._isPrepared = False
 
 	def _checkColumn(self, column):
 		assert isinstance(column, list), "Column has to be listtype!"
@@ -36,12 +44,24 @@ class Pynstein(object):
 		"""
 		pass
 
+	def _extractItems(self, items):
+		for rowIndex, item in enumerate(items):
+			if len(self._items) < (rowIndex + 1):
+				self._items.append([])
+			if item is not None:
+				if item not in self._items[rowIndex]:
+					self._items[rowIndex].append(item)
+
+	def _checkItems(self):
+		assert len([r for r in self._items if len(r) == len(self._items[0])]) == len(self._items), "Length of rows do not match. Did you miss any conditions?"
+
 	def AddCondition_Info(self, column, exclude=False):
 		""" Add an info condition
 		Info contraints consist of just one column
 		e.g. "The Englishman lives in the red house"
 		"""
 		self._checkColumn(column)
+		self._unprepare()
 		self._conditions["info"].append({"column": column, "exclude": exclude})
 
 	def AddCondition_Position(self, column, position, exclude=False):
@@ -51,6 +71,7 @@ class Pynstein(object):
 		"""
 		self._checkColumn(column)
 		self._checkPosition(position)
+		self._unprepare()
 		if position not in self._conditions["position"]:
 			self._conditions["position"][position] = []
 		self._conditions["position"][position].append({"column": column, "exclude": exclude})
@@ -62,30 +83,55 @@ class Pynstein(object):
 		"""
 		self._checkColumn(column1)
 		self._checkColumn(column2)
-		self._conditions["next_to"].append({"column1": column1, "column2": column2})
+		self._unprepare()
+		self._conditions["next_to"].append({"column1": column1, "column2": column2, "exclude": exclude})
 
-	def AddCondition_LeftOf(self, leftColumn, rightColumn, exclude=False):
+	def AddCondition_LeftOf(self, leftColumn, rightColumn, somewhere=False, exclude=False):
 		""" Add a leftOf condition
 		LeftOf conditions are like nextTo condions, but with a difinite order of the columns
 		e.g. "The green house is immediately to the right/left of the ivory house"
 		"""
 		self._checkColumn(leftColumn)
 		self._checkColumn(rightColumn)
-		self._conditions["left_of"].append({"leftColumn": leftColumn, "rightColumn": rightColumn})
+		self._unprepare()
+		self._conditions["left_of"].append({"leftColumn": leftColumn, "rightColumn": rightColumn, "somewhere": somewhere, "exclude": exclude})
 
-	def AddCondition_RightOf(self, rightColumn, leftColumn, exclude=False):
+	def AddCondition_RightOf(self, rightColumn, leftColumn, somewhere=False, exclude=False):
 		""" Add a rightOf condition
 		This is the same as the leftOf condition, just with swapped columns
 		"""
-		self.AddCondition_LeftOf(leftColumn, rightColumn, exclude)
+		self.AddCondition_LeftOf(leftColumn, rightColumn, somewhere, exclude)
+
+	def Set_Wrap(self, wrap):
+		assert isinstance(wrap, bool), "Must be boolean value!"
+		self._wrap = wrap
 
 	def Prepare(self):
-		pass
+		for conditionType in self._conditions:
+			if conditionType == "info":
+				for condition in self._conditions["info"]:
+					self._extractItems(condition["column"])
+			elif conditionType == "position":
+				for conditionPos in self._conditions["position"]:
+					for condition in self._conditions["position"][conditionPos]:
+						self._extractItems(condition["column"])
+			elif conditionType == "next_to":
+				for condition in self._conditions["next_to"]:
+					self._extractItems(condition["column1"])
+					self._extractItems(condition["column2"])
+			elif conditionType == "left_of":
+				for condition in self._conditions["left_of"]:
+					self._extractItems(condition["leftColumn"])
+					self._extractItems(condition["rightColumn"])
+		self._checkItems()
 
 	def Solve(self):
-		pass
+		if not self._isPrepared:
+			self.Prepare()
 
-	def StartOver(self):
+	def Reset(self):
+		""" Resets all values to default
+		"""
 		self._init()
 
 	@property
@@ -98,4 +144,8 @@ class Pynstein(object):
 
 	@property
 	def Items(self):
-		return []
+		return self._items
+
+	@property
+	def Wrap(self):
+		return self._wrap

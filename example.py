@@ -76,3 +76,12 @@ puzzle.AddCondition_NextTo(["Norwegian"], [None, "blue"])
 
 #The green house is immediately to the right of the ivory house.
 puzzle.AddCondition_RightOf([None, "green"], [None, "ivory"])
+
+
+# add missing informations
+puzzle.AddCondition_Info([None, None, None, "water"])
+puzzle.AddCondition_Info([None, None, "zebra"])
+
+
+# prepare (explicit)
+puzzle.Prepare()
