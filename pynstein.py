@@ -124,6 +124,7 @@ class Pynstein(object):
 					self._extractItems(condition["leftColumn"])
 					self._extractItems(condition["rightColumn"])
 		self._checkItems()
+		self._isPrepared = True
 
 	def Solve(self):
 		if not self._isPrepared:
