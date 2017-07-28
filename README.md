@@ -21,14 +21,17 @@ To solve the puzzle one can use the following conditions:
    LeftOf/RightOf-conditions are like NextTo-condions, but with a difinite order of the columns, e.g. *"The green house is immediately to the right/left of the ivory house"*
    
 ### Exclude conditions
-   If you want to exclude a certain condition, e.g. "A is **NOT** left of B", simply use the normal condition "A **IS** left of B" and pass the additional parameter `exclude=True`.
+If you want to exclude a certain condition, e.g. "A is **NOT** left of B", simply use the normal condition "A **IS** left of B" and pass the additional parameter `exclude=True`.
    
-   Example: `puzzle.AddCondition_LeftOf(["A"], ["B"], exclude=True)`
+Example: `puzzle.AddCondition_LeftOf(["A"], ["B"], exclude=True)`
    
 ### Somewhere conditions
-   For `AddCondition_RightOf`and `AddCondition_LeftOf` you can pass the additional parameter `somewhere` which - if set to `True` - means that the condition will be met if A is anywhere left of/right of B, not just next to it.
+For `AddCondition_RightOf`and `AddCondition_LeftOf` you can pass the additional parameter `somewhere` which - if set to `True` - means that the condition will be met if A is anywhere left of/right of B, not just next to it.
    
-   Example: `puzzle.AddCondition_LeftOf(["A"], ["B"], somewhere=True)`
+Example: `puzzle.AddCondition_LeftOf(["A"], ["B"], somewhere=True)`
+
+**Note: If wrap-mode is enabled, this will throw an error!**
+   
 
 ## Usage
 
