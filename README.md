@@ -31,6 +31,11 @@ For `AddCondition_RightOf`and `AddCondition_LeftOf` you can pass the additional 
 Example: `puzzle.AddCondition_LeftOf(["A"], ["B"], somewhere=True)`
 
 **Note: If wrap-mode is enabled, this will throw an error!**
+
+### Wrapmode
+If you want the grid to be connected ob both ends to form a ring-like structure (e.g. a round table) set wrapmode to true by the following command:
+
+`puzzle.Set_Wrap(True)`
    
 
 ## Usage
