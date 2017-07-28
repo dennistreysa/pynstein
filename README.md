@@ -4,21 +4,21 @@ Python tool for solving Einstein (zebra) puzzles using different conditions.
 ## Conditions
 To solve the puzzle one can use the following conditions:
 
-* Info-Conditions
+* **Info-Conditions**
 
-Info-conditions simply discribe a single column, like *"The Englishman lives in the red house"*
+   Info-conditions simply discribe a single column, like *"The Englishman lives in the red house"*
 
-* Position-Conditions
+* **Position-Conditions**
 
-Position-conditions are just like Info-conditions, but they have a preset column index, e.g. *"The Norwegian lives in the first house"*
+   Position-conditions are just like Info-conditions, but they have a preset column index, e.g. *"The Norwegian lives in the first house"*
 
-* NextTo-Conditions
+* **NextTo-Conditions**
 
-NextTo-conditions mean that two columns are next to each other, regardles of the order, e.g. *"The man who smokes Chesterfields lives in the house next to the man with the fox"*
+   NextTo-conditions mean that two columns are next to each other, regardles of the order, e.g. *"The man who smokes Chesterfields lives in the house next to the man with the fox"*
 
-* LeftOf/RightOf-Conditions
+* **LeftOf/RightOf-Conditions**
 
-LeftOf/RightOf-conditions are like NextTo-condions, but with a difinite order of the columns, e.g. *"The green house is immediately to the right/left of the ivory house"*
+   LeftOf/RightOf-conditions are like NextTo-condions, but with a difinite order of the columns, e.g. *"The green house is immediately to the right/left of the ivory house"*
 
 ## Usage
 
