@@ -36,11 +36,22 @@ class Pynstein(object):
 		assert isinstance(position, int), "Position has to be int!"
 		assert position >= 0, "Position has to be int!"
 
-	def _getPosition(self, column):
+	def _getPosition(self, maxRowIndex, column):
 		""" Tries to find the position of a given column in the current puzzle-matrix
-		Returns index >= 0 if found, else None
+		Returns index >= 0 if found, -1 if only None-values were checked, else None
 		"""
-		pass
+		firstIndex = None
+		for rowIndex, item in enumerate(column):
+			if rowIndex > maxRowIndex:
+				break
+			if item is not None:
+				index = self._items[rowIndex].index(item)
+				if firstIndex is not None:
+					if index != firstIndex:
+						return None
+				else:
+					firstIndex = index
+		return firstIndex if firstIndex is not None else -1
 
 	def _checkConditions(self, maxRowIndex):
 		""" Checks all conditions
@@ -54,6 +65,21 @@ class Pynstein(object):
 				if self._checkAtPosition(maxRowIndex, condition["column"], position) == condition["exclude"]:
 					return False
 
+		# info-conditions
+		for condition in self._conditions["info"]:
+			if (self._getPosition(maxRowIndex, condition["column"]) is not None) == condition["exclude"]:
+				return False
+
+		# leftOf-conditions
+		for condition in self._conditions["left_of"]:
+			if self._checkLeftOf(maxRowIndex, condition["leftColumn"], condition["rightColumn"]) == condition["exclude"]:
+				return False
+
+		# nextTo-conditions
+		for condition in self._conditions["next_to"]:
+			if self._checkNextTo(maxRowIndex, condition["column1"], condition["column2"]) == condition["exclude"]:
+				return False
+
 		return True
 
 
@@ -65,6 +91,26 @@ class Pynstein(object):
 				if not self._items[rowIndex][columnIndex] == item:
 					return False
 		return True
+
+	def _checkLeftOf(self, maxRowIndex, leftColumn, rightColumn):
+		leftIndex = self._getPosition(maxRowIndex, leftColumn)
+		if leftIndex is not None:
+			# only None-values so far
+			if leftIndex == -1:
+				return True
+			rightIndex = self._getPosition(maxRowIndex, rightColumn)
+			if rightIndex is not None:
+				# only None-values so far
+				if rightIndex == -1:
+					return True
+				if self._wrap:
+					return (leftIndex == (rightIndex - 1)) or (leftIndex == (self._cols - 1) and rightIndex == 0)
+				else:
+					return leftIndex == (rightIndex - 1)
+		return False
+
+	def _checkNextTo(self, maxRowIndex, column1, column2):
+		return self._checkLeftOf(maxRowIndex, column1, column2) or self._checkLeftOf(maxRowIndex, column2, column1)
 
 	def _extractItems(self, items):
 		for rowIndex, item in enumerate(items):
@@ -146,6 +192,8 @@ class Pynstein(object):
 					self._extractItems(condition["leftColumn"])
 					self._extractItems(condition["rightColumn"])
 		self._checkItems()
+		self._cols = len(self._items[0])
+		self._rows = len(self._items)
 		self._isPrepared = True
 
 	def _solve(self, rowIndex):
@@ -185,8 +233,8 @@ class Pynstein(object):
 		return self._cols
 
 	@property
-	def Items(self):
-		return self._items
+	def Solutions(self):
+		return self._solutions
 
 	@property
 	def Wrap(self):
