@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import copy
+import itertools
+
 
 class Pynstein(object):
 
@@ -11,6 +14,7 @@ class Pynstein(object):
 		self._cols = None
 		self._isPrepared = False
 		self._items = []
+		self._solutions = []
 		self._conditions = {
 			"info" : [],
 			"position": {},
@@ -38,11 +42,29 @@ class Pynstein(object):
 		"""
 		pass
 
-	def _checkConditions(self):
+	def _checkConditions(self, maxRowIndex):
 		""" Checks all conditions
 		Returns True, if all conditions are successfully met
 		"""
-		pass
+		
+		# position-conditions
+		for position in self._conditions["position"]:
+			for condition in self._conditions["position"][position]:
+				# 'check XOR exclude' bust be true
+				if self._checkAtPosition(maxRowIndex, condition["column"], position) == condition["exclude"]:
+					return False
+
+		return True
+
+
+	def _checkAtPosition(self, maxRowIndex, column, columnIndex):
+		for rowIndex, item in enumerate(column):
+			if rowIndex > maxRowIndex:
+				break
+			if item is not None:
+				if not self._items[rowIndex][columnIndex] == item:
+					return False
+		return True
 
 	def _extractItems(self, items):
 		for rowIndex, item in enumerate(items):
@@ -126,9 +148,28 @@ class Pynstein(object):
 		self._checkItems()
 		self._isPrepared = True
 
+	def _solve(self, rowIndex):
+		
+		if rowIndex >= len(self._items):
+			self._solutions.append(copy.deepcopy(self._items))
+			return
+
+		# safe
+		originalRow = copy.deepcopy(self._items[rowIndex])
+
+		for rowPermutation in itertools.permutations(originalRow):
+			self._items[rowIndex] = rowPermutation
+			if self._checkConditions(rowIndex):
+				self._solve(rowIndex + 1)
+
+		# restore
+		self._items[rowIndex] = originalRow
+
 	def Solve(self):
 		if not self._isPrepared:
 			self.Prepare()
+		originalItems = copy.deepcopy(self._items)
+		self._solve(0)
 
 	def Reset(self):
 		""" Resets all values to default

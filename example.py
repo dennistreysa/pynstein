@@ -84,4 +84,7 @@ puzzle.AddCondition_Info([None, None, "zebra"])
 
 
 # prepare (explicit)
-puzzle.Prepare()
+#puzzle.Prepare()
+
+# solve - calls Prepare() implicit
+puzzle.Solve()
