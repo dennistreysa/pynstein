@@ -107,4 +107,4 @@ print(puzzle.Solutions)
 
 **Note that unknown fields must be *None*. Trailing None-fields can be dropped.**
 
-The full example can be seen under *emample.py*
+The full example can be seen under *example.py*
