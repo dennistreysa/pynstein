@@ -19,6 +19,10 @@ To solve the puzzle one can use the following conditions:
 * **LeftOf/RightOf-Conditions**
 
    LeftOf/RightOf-conditions are like NextTo-condions, but with a difinite order of the columns, e.g. *"The green house is immediately to the right/left of the ivory house"*
+   
+### Exclude conditions
+If you want to exclude a certain condition, e.g. "A is **NOT** left of B", simply pass the parameter `exclude=True`.
+Example: `puzzle.AddCondition_RightOf(["A"], ["B"], exclude=True)`
 
 ## Usage
 
