@@ -82,7 +82,6 @@ class Pynstein(object):
 
 		return True
 
-
 	def _checkAtPosition(self, maxRowIndex, column, columnIndex):
 		for rowIndex, item in enumerate(column):
 			if rowIndex > maxRowIndex:
@@ -92,7 +91,7 @@ class Pynstein(object):
 					return False
 		return True
 
-	def _checkLeftOf(self, maxRowIndex, leftColumn, rightColumn):
+	def _checkLeftOf(self, maxRowIndex, leftColumn, rightColumn, somewhere):
 		leftIndex = self._getPosition(maxRowIndex, leftColumn)
 		if leftIndex is not None:
 			# only None-values so far
@@ -103,14 +102,17 @@ class Pynstein(object):
 				# only None-values so far
 				if rightIndex == -1:
 					return True
-				if self._wrap:
-					return (leftIndex == (rightIndex - 1)) or (leftIndex == (self._cols - 1) and rightIndex == 0)
+				if not somewhere:
+					if self._wrap:
+						return (leftIndex == (rightIndex - 1)) or (leftIndex == (self._cols - 1) and rightIndex == 0)
+					else:
+						return leftIndex == (rightIndex - 1)
 				else:
-					return leftIndex == (rightIndex - 1)
+					return leftIndex < rightIndex
 		return False
 
 	def _checkNextTo(self, maxRowIndex, column1, column2):
-		return self._checkLeftOf(maxRowIndex, column1, column2) or self._checkLeftOf(maxRowIndex, column2, column1)
+		return self._checkLeftOf(maxRowIndex, column1, column2, somewhere) or self._checkLeftOf(maxRowIndex, column2, column1, somewhere)
 
 	def _extractItems(self, items):
 		for rowIndex, item in enumerate(items):
@@ -146,7 +148,7 @@ class Pynstein(object):
 
 	def AddCondition_NextTo(self, column1, column2, exclude=False):
 		""" Add a nextTo condition
-		NextTo conditions mean that to columns are next to each other, regardles of the order
+		NextTo conditions mean that two columns are next to each other, regardles of the order
 		e.g. "The man who smokes Chesterfields lives in the house next to the man with the fox"
 		"""
 		self._checkColumn(column1)
@@ -159,6 +161,7 @@ class Pynstein(object):
 		LeftOf conditions are like nextTo condions, but with a difinite order of the columns
 		e.g. "The green house is immediately to the right/left of the ivory house"
 		"""
+		assert (not somewhere) or (not self._wrap), "Cannot set somewhere=True if wrapmode is enabled!"
 		self._checkColumn(leftColumn)
 		self._checkColumn(rightColumn)
 		self._unprepare()
@@ -172,6 +175,9 @@ class Pynstein(object):
 
 	def Set_Wrap(self, wrap):
 		assert isinstance(wrap, bool), "Must be boolean value!"
+		if wrap:
+			# check if there is a condiotion with somewhere=True
+			assert len([condition for condition in self._conditions["left_of"] if condition["somewhere"]]) == 0, "Cannot set wrapmode if a condition has somewhere=True"
 		self._wrap = wrap
 
 	def Prepare(self):
