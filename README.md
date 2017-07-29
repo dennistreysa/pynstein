@@ -20,6 +20,10 @@ To solve the puzzle one can use the following conditions:
 
    LeftOf/RightOf-conditions are like NextTo-condions, but with a difinite order of the columns, e.g. *"The green house is immediately to the right/left of the ivory house"*
    
+* **Distance-Conditions**
+   
+   Distance conditions ensure that two given columns have a fixed distance to each other, e.g. *"A is 3 places left of B"*
+   
 ### Exclude conditions
 If you want to exclude a certain condition, e.g. "A is **NOT** left of B", simply use the normal condition "A **IS** left of B" and pass the additional parameter `exclude=True`.
    
