@@ -62,27 +62,42 @@ class Pynstein(object):
 		# position-conditions
 		for position in self._conditions["position"]:
 			for condition in self._conditions["position"][position]:
+				# excluded conditions must be checked completely!
+				if condition["exclude"] and maxRowIndex < condition["maxAffectedRow"]:
+					continue
 				# 'check XOR exclude' bust be true
 				if self._checkAtPosition(maxRowIndex, condition["column"], position) == condition["exclude"]:
 					return False
 
 		# info-conditions
 		for condition in self._conditions["info"]:
+			# excluded conditions must be checked completely!
+			if condition["exclude"] and maxRowIndex < condition["maxAffectedRow"]:
+				continue
 			if (self._getPosition(maxRowIndex, condition["column"]) is not None) == condition["exclude"]:
 				return False
 
 		# leftOf-conditions
 		for condition in self._conditions["left_of"]:
+			# excluded conditions must be checked completely!
+			if condition["exclude"] and maxRowIndex < condition["maxAffectedRow"]:
+				continue
 			if self._checkLeftOf(maxRowIndex, condition["leftColumn"], condition["rightColumn"], condition["somewhere"]) == condition["exclude"]:
 				return False
 
 		# nextTo-conditions
 		for condition in self._conditions["next_to"]:
+			# excluded conditions must be checked completely!
+			if condition["exclude"] and maxRowIndex < condition["maxAffectedRow"]:
+				continue
 			if self._checkNextTo(maxRowIndex, condition["column1"], condition["column2"]) == condition["exclude"]:
 				return False
 
 		# distance-conditions
 		for condition in self._conditions["distance"]:
+			# excluded conditions must be checked completely!
+			if condition["exclude"] and maxRowIndex < condition["maxAffectedRow"]:
+				continue
 			if self._checkDistantTo(maxRowIndex, condition["firstColumn"], condition["secondColumn"], condition["distance"]) == condition["exclude"]:
 				return False
 
@@ -134,6 +149,13 @@ class Pynstein(object):
 	def _checkItems(self):
 		assert len([r for r in self._items if len(r) == len(self._items[0])]) == len(self._items), "Length of rows do not match. Did you miss any conditions?"
 
+	def _getIndexOfMaxAffectedRow(self, column):	
+		maxRow = 0
+		for iRow, row in enumerate(column):
+			if row is not None:
+				maxRow = iRow
+		return maxRow
+
 	def AddCondition_Info(self, column, exclude=False):
 		""" Add an info condition
 		Info conditions consist of just one column
@@ -141,7 +163,7 @@ class Pynstein(object):
 		"""
 		self._checkColumn(column)
 		self._unprepare()
-		self._conditions["info"].append({"column": column, "exclude": exclude})
+		self._conditions["info"].append({"column": column, "exclude": exclude, "maxAffectedRow": self._getIndexOfMaxAffectedRow(column)})
 
 	def AddCondition_Position(self, column, position, exclude=False):
 		""" Add a position condition
@@ -153,7 +175,7 @@ class Pynstein(object):
 		self._unprepare()
 		if position not in self._conditions["position"]:
 			self._conditions["position"][position] = []
-		self._conditions["position"][position].append({"column": column, "exclude": exclude})
+		self._conditions["position"][position].append({"column": column, "exclude": exclude, "maxAffectedRow": self._getIndexOfMaxAffectedRow(column)})
 
 	def AddCondition_NextTo(self, column1, column2, exclude=False):
 		""" Add a nextTo condition
@@ -163,7 +185,7 @@ class Pynstein(object):
 		self._checkColumn(column1)
 		self._checkColumn(column2)
 		self._unprepare()
-		self._conditions["next_to"].append({"column1": column1, "column2": column2, "exclude": exclude})
+		self._conditions["next_to"].append({"column1": column1, "column2": column2, "exclude": exclude, "maxAffectedRow": max(self._getIndexOfMaxAffectedRow(column1), self._getIndexOfMaxAffectedRow(column2))})
 
 	def AddCondition_LeftOf(self, leftColumn, rightColumn, somewhere=False, exclude=False):
 		""" Add a leftOf condition
@@ -174,7 +196,8 @@ class Pynstein(object):
 		self._checkColumn(leftColumn)
 		self._checkColumn(rightColumn)
 		self._unprepare()
-		self._conditions["left_of"].append({"leftColumn": leftColumn, "rightColumn": rightColumn, "somewhere": somewhere, "exclude": exclude})
+		self._conditions["left_of"].append({"leftColumn": leftColumn, "rightColumn": rightColumn, "somewhere": somewhere, "exclude": exclude,
+			"maxAffectedRow": max(self._getIndexOfMaxAffectedRow(leftColumn), self._getIndexOfMaxAffectedRow(rightColumn))})
 
 	def AddCondition_RightOf(self, rightColumn, leftColumn, somewhere=False, exclude=False):
 		""" Add a rightOf condition
@@ -191,7 +214,8 @@ class Pynstein(object):
 		self._checkColumn(firstColumn)
 		self._checkColumn(secondColumn)
 		self._unprepare()
-		self._conditions["distance"].append({"firstColumn": firstColumn, "secondColumn": secondColumn, "distance": distance, "exclude": exclude})
+		self._conditions["distance"].append({"firstColumn": firstColumn, "secondColumn": secondColumn, "distance": distance, "exclude": exclude,
+			"maxAffectedRow": max(self._getIndexOfMaxAffectedRow(firstColumn), self._getIndexOfMaxAffectedRow(secondColumn))})
 
 	def Set_Wrap(self, wrap):
 		assert isinstance(wrap, bool), "Must be boolean value!"
