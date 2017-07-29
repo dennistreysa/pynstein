@@ -19,7 +19,8 @@ class Pynstein(object):
 			"info" : [],
 			"position": {},
 			"next_to": [],
-			"left_of": []
+			"left_of": [],
+			"distance": []
 		}
 
 	def _unprepare(self):
@@ -72,12 +73,17 @@ class Pynstein(object):
 
 		# leftOf-conditions
 		for condition in self._conditions["left_of"]:
-			if self._checkLeftOf(maxRowIndex, condition["leftColumn"], condition["rightColumn"]) == condition["exclude"]:
+			if self._checkLeftOf(maxRowIndex, condition["leftColumn"], condition["rightColumn"], condition["somewhere"]) == condition["exclude"]:
 				return False
 
 		# nextTo-conditions
 		for condition in self._conditions["next_to"]:
 			if self._checkNextTo(maxRowIndex, condition["column1"], condition["column2"]) == condition["exclude"]:
+				return False
+
+		# distance-conditions
+		for condition in self._conditions["distance"]:
+			if self._checkDistantTo(maxRowIndex, condition["firstColumn"], condition["secondColumn"], condition["distance"]) == condition["exclude"]:
 				return False
 
 		return True
@@ -91,7 +97,7 @@ class Pynstein(object):
 					return False
 		return True
 
-	def _checkLeftOf(self, maxRowIndex, leftColumn, rightColumn, somewhere):
+	def _checkLeftOf(self, maxRowIndex, leftColumn, rightColumn, somewhere, distance=1):
 		leftIndex = self._getPosition(maxRowIndex, leftColumn)
 		if leftIndex is not None:
 			# only None-values so far
@@ -104,15 +110,18 @@ class Pynstein(object):
 					return True
 				if not somewhere:
 					if self._wrap:
-						return (leftIndex == (rightIndex - 1)) or (leftIndex == (self._cols - 1) and rightIndex == 0)
+						return ((leftIndex + distance) % self._cols) == rightIndex
 					else:
-						return leftIndex == (rightIndex - 1)
+						return (leftIndex + distance) == rightIndex
 				else:
 					return leftIndex < rightIndex
 		return False
 
 	def _checkNextTo(self, maxRowIndex, column1, column2):
-		return self._checkLeftOf(maxRowIndex, column1, column2, somewhere) or self._checkLeftOf(maxRowIndex, column2, column1, somewhere)
+		return self._checkLeftOf(maxRowIndex, column1, column2, False) or self._checkLeftOf(maxRowIndex, column2, column1, False)
+
+	def _checkDistantTo(self, firstColumn, secondColumn, distance):
+		return self._checkLeftOf(maxRowIndex, firstColumn, secondColumn, False, distance) or self._checkLeftOf(maxRowIndex, secondColumn, firstColumn, False, distance)
 
 	def _extractItems(self, items):
 		for rowIndex, item in enumerate(items):
@@ -127,7 +136,7 @@ class Pynstein(object):
 
 	def AddCondition_Info(self, column, exclude=False):
 		""" Add an info condition
-		Info contraints consist of just one column
+		Info conditions consist of just one column
 		e.g. "The Englishman lives in the red house"
 		"""
 		self._checkColumn(column)
@@ -172,6 +181,17 @@ class Pynstein(object):
 		This is the same as the leftOf condition, just with swapped columns
 		"""
 		self.AddCondition_LeftOf(leftColumn, rightColumn, somewhere, exclude)
+
+	def AddCondition_Distance(self, firstColumn, secondColumn, distance, exclude=False):
+		""" Add a distance condition
+		Distance conditions ensure that two given columns have a fixed distance to each other
+		"""
+		assert isinstance(distance, int), "Distance has to be int!"
+		assert distance >= 1, "Distance has to be >= 1"
+		self._checkColumn(firstColumn)
+		self._checkColumn(secondColumn)
+		self._unprepare()
+		self._conditions["distance"].append({"firstColumn": firstColumn, "secondColumn": secondColumn, "distance": distance, "exclude": exclude})
 
 	def Set_Wrap(self, wrap):
 		assert isinstance(wrap, bool), "Must be boolean value!"
