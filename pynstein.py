@@ -20,7 +20,8 @@ class Pynstein(object):
 			"position": {},
 			"next_to": [],
 			"left_of": [],
-			"distance": []
+			"distance": [],
+			"or" : []
 		}
 
 	def _unprepare(self):
@@ -100,6 +101,18 @@ class Pynstein(object):
 				continue
 			if self._checkDistantTo(maxRowIndex, condition["firstColumn"], condition["secondColumn"], condition["distance"]) == condition["exclude"]:
 				return False
+
+		# or-conditions
+		for condition in self._conditions["or"]:
+			# we need to wait until condition can be checked completely, or else we might get too many probably-positives if maxTrue is set
+			if maxRowIndex < condition["maxAffectedRow"]:
+				continue		
+			numberOfTrueColumns = len([c for c in [self._getPosition(maxRowIndex, column["column"]) for column in condition["columns"]] if c is not None])
+			if numberOfTrueColumns < 1:
+				return False
+			if condition["maxTrue"] != -1:
+				if numberOfTrueColumns > condition["maxTrue"]:
+					return False
 
 		return True
 
@@ -217,6 +230,21 @@ class Pynstein(object):
 		self._conditions["distance"].append({"firstColumn": firstColumn, "secondColumn": secondColumn, "distance": distance, "exclude": exclude,
 			"maxAffectedRow": max(self._getIndexOfMaxAffectedRow(firstColumn), self._getIndexOfMaxAffectedRow(secondColumn))})
 
+	def AddCondition_Or(self, columns, maxTrue=-1):
+		""" Add an or condition
+		An or-condition checks a given list of info-conditions and ensures that the number of successful conditions is >= 1 and <= maxTrue or only >= 1 if maxTrue = -1
+		"""
+		assert isinstance(columns, list), "Columns have to be listtype!"
+		assert len(columns) > 1, "Need at least two columns!"
+		assert isinstance(maxTrue, int) and (maxTrue > 0 or maxTrue == -1), "maxTrue has to be int and > 0 or -1!"
+		for column in columns:
+			self._checkColumn(column)
+		self._conditions["or"].append({"columns": [{"column": column} for column in columns], "maxTrue": maxTrue,
+			"maxAffectedRow": max([self._getIndexOfMaxAffectedRow(column) for column in columns])})
+
+	def AddCondition_Xor(self, columns):
+		self.AddCondition_Or(columns, 1)
+
 	def Set_Wrap(self, wrap):
 		assert isinstance(wrap, bool), "Must be boolean value!"
 		if wrap:
@@ -241,6 +269,14 @@ class Pynstein(object):
 				for condition in self._conditions["left_of"]:
 					self._extractItems(condition["leftColumn"])
 					self._extractItems(condition["rightColumn"])
+			elif conditionType == "distance":
+				for condition in self._conditions["distance"]:
+					self._extractItems(condition["firstColumn"])
+					self._extractItems(condition["secondColumn"])
+			elif conditionType == "or":
+				for condition in self._conditions["or"]:
+					for column in condition["columns"]:
+						self._extractItems(column["column"])
 		self._checkItems()
 		self._cols = len(self._items[0])
 		self._rows = len(self._items)
